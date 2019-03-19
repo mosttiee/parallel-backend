@@ -1,17 +1,21 @@
 const express = require('express')
 const socketIO = require('socket.io')
-http = require('http')
+const bodyParser = require("body-parser");
+const http = require('http')
+
 app = express()
+app.use(bodyParser.json());
 server = http.createServer(app)
+
 io = socketIO.listen(server)
 const port = (process.env.PORT || 3000)
 
 // test test
-app.get('/', (req, res) => {
-  res.send(JSON.stringify({ Hello: ‘World’}))
+app.get('/api/hello', (req, res) => {
+  res.send(JSON.stringify({ Hello: 'World'}))
 });
 
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   res.send('login Api')
 });
 
