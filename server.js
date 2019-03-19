@@ -3,16 +3,27 @@ const socketIO = require('socket.io')
 const bodyParser = require("body-parser");
 const http = require('http')
 
-app = express()
+let app = express()
 app.use(bodyParser.json());
-server = http.createServer(app)
 
-io = socketIO.listen(server)
-const port = (process.env.PORT || 3000)
+app.use( (req, res, next) => {
+  res.set('Content-Type', 'application/json');
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next()
+})
 
-// test test
+let server = http.createServer(app)
+
+let io = socketIO.listen(server, {log:false, origins:'*:*'})
+const port = (process.env.PORT || 4000)
+
 app.get('/api/hello', (req, res) => {
-  res.send(JSON.stringify({ Hello: 'World'}))
+  const data = {
+    Hello: 'World',
+  }
+  res.status(200)
+  res.send(JSON.stringify(data))
 });
 
 app.post('/api/login', (req, res) => {
