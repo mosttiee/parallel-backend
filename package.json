@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/mosttiee/parallel-backend/issues"
   },
-  "homepage": "https://github.com/mosttiee/parallel-backend#readme"
+  "homepage": "https://github.com/mosttiee/parallel-backend#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0",
+    "soket.io": "^1.0.0"
+  }
 }
