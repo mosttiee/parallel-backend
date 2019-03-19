@@ -8,7 +8,7 @@ const port = (process.env.PORT || 3000)
 
 // test test
 app.get('/', (req, res) => {
-  res.send('hello')
+  res.send(JSON.stringify({ Hello: ‘World’}))
 });
 
 app.post('/login', (req, res) => {
