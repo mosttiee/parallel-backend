@@ -1,3 +1,63 @@
 {
-    
+    "_id": {
+        "$oid": "5c90912bffd4731a9c01435a"
+    },
+    "rooms": [
+        {
+            "roomName": "TestRoom1",
+            "members": [
+                {
+                    "$oid": "5c907d34ffd4731a9c014350"
+                },
+                {
+                    "$oid": "5c907d5dffd4731a9c014351"
+                },
+                {
+                    "$oid": "5c907e24ffd4731a9c014354"
+                }
+            ],
+            "messages": [
+                {
+                    "text": "First Line",
+                    "sender": {
+                        "$oid": "5c907d34ffd4731a9c014350"
+                    }
+                },
+                {
+                    "text": "Second Line",
+                    "sender": {
+                        "$oid": "5c907d5dffd4731a9c014351"
+                    }
+                }
+            ]
+        },
+        {
+            "roomName": "TestRoom2",
+            "members": [
+                {
+                    "$oid": "5c907d34ffd4731a9c014350"
+                },
+                {
+                    "$oid": "5c907d5dffd4731a9c014351"
+                },
+                {
+                    "$oid": "5c907e24ffd4731a9c014354"
+                }
+            ],
+            "messages": [
+                {
+                    "text": "First Line 2",
+                    "sender": {
+                        "$oid": "5c907d34ffd4731a9c014350"
+                    }
+                },
+                {
+                    "text": "Second Line 2",
+                    "sender": {
+                        "$oid": "5c907d5dffd4731a9c014351"
+                    }
+                }
+            ]
+        }
+    ]
 }
