@@ -1,7 +1,7 @@
 const express = require('express')
 const socketIO = require('socket.io')
 const mongoose = require('mongoose')
-const Rooms = require('./models/Rooms.js')
+const Room = require('./models/Room')
 const seeder = require('./initial/seeding.js');
 http = require('http')
 app = express()
@@ -15,7 +15,7 @@ process.argv.forEach(function (val, index, array) {
     console.log(index + ': ' + val);
     if(index >= 2){
         if(val == 'seed_database'){
-            console.log('seeding database');
+            console.log('seeding database...');
             seeder.seed_database();
         }
     }
@@ -36,7 +36,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/testdb', (req, res) => {
-    Rooms.find()
+    Room.find()
         .then(rooms => {
             res.json({
                 confirmation: 'success',

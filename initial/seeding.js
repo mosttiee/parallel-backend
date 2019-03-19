@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const User = require('../models/User')
-const Rooms = require('../models/Rooms')
+const Room = require('../models/Room')
 
 module.exports = {
     seed_database: function () {
@@ -23,9 +23,8 @@ module.exports = {
 
 
         //---- Create Rooms ----
-        let rooms_root = new Rooms({
-            rooms: [{
-                roomName: "A01",
+        let room_a01 = new Room({
+            roomName: "A01",
                 messages: [{
                     text: "First line",
                     sender: user_beam._id
@@ -37,8 +36,9 @@ module.exports = {
                     sender: user_bob._id
                 }],
                 members: [user_beam._id, user_job._id, user_bob._id]
-            }, {
-                roomName: "A02",
+        });
+        let room_a02 = new Room({
+            roomName: "A02",
                 messages: [{
                     text: "First line02",
                     sender: user_beam._id
@@ -50,14 +50,24 @@ module.exports = {
                     sender: user_bob._id
                 }],
                 members: [user_beam._id, user_job._id, user_bob._id]
-            }]
         });
 
-        rooms_root.save(function (error) {
+        room_a01.save(function (error) {
             if (!error) {
-                Rooms.find({})
-                    .populate('rooms.members')
-                    .populate('rooms.messages.sender')
+                Room.find({})
+                    .populate('members')
+                    .populate('messages.sender')
+                    .exec(function (error, rooms) {
+                        console.log(JSON.stringify(rooms, null, "\t"))
+                    })
+            }
+        });
+
+        room_a02.save(function (error) {
+            if (!error) {
+                Room.find({})
+                    .populate('members')
+                    .populate('messages.sender')
                     .exec(function (error, rooms) {
                         console.log(JSON.stringify(rooms, null, "\t"))
                     })

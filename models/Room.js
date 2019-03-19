@@ -9,12 +9,10 @@ const message = {
 }
 
 const RoomsSchema = new mongoose.Schema({
-    rooms: [{
-        // roomID: {type: String, default:'', trim:true, required: true},
-        roomName: {type: String, default:'', trim:true, required: true},
-        messages: [message],
-        members: [userRef]
-    }]
+    // roomID: {type: String, default:'', trim:true, required: true},
+    roomName: {type: String, default:'', trim:true, required: true},
+    messages: [message],
+    members: [userRef]
 });
 
 module.exports = mongoose.model('Rooms', RoomsSchema);
