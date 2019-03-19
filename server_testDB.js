@@ -13,6 +13,7 @@ app.use(bodyParser.json());
 server = http.createServer(app)
 io = socketIO.listen(server)
 const port = (process.env.PORT || 3000)
+const MONGODB_URI = (process.env.MONGODB_URI || 'mongodb://localhost:27017/gchat')
 
 //processing arguments
 const args = process.argv;
@@ -27,7 +28,7 @@ process.argv.forEach(function (val, index, array) {
     }
 });
 
-mongoose.connect('mongodb://localhost:27017/gchat', { useNewUrlParser: true }).then(
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
     () => { },
     err => { console.log('connection to database error') }
 );

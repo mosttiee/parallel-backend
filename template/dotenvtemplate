@@ -1,0 +1,3 @@
+create file name '.env' at folder parallel-backed and then add the following lines
+
+MONGODB_URI=mongodb://localhost:27017/gchat
