@@ -4,9 +4,9 @@ http = require('http')
 app = express()
 server = http.createServer(app)
 io = socketIO.listen(server)
-const port = 3000
+const port = (process.env.PORT || 3000)
 
-// test test 
+// test test
 app.get('/', (req, res) => {
   res.send('hello')
 });
