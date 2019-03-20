@@ -1,32 +1,43 @@
 const express = require('express')
-const socketIO = require('socket.io')
+const socket = require('socket.io')
 const bodyParser = require("body-parser");
-const http = require('http')
 
-app = express()
+let app = express()
+
 app.use(bodyParser.json());
-server = http.createServer(app)
+app.use( (req, res, next) => {
+  res.set('Content-Type', 'application/json');
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next()
+})
 
-io = socketIO.listen(server)
-const port = (process.env.PORT || 3000)
+const port = (process.env.PORT || 4000)
+let server = app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
-// test test
 app.get('/api/hello', (req, res) => {
-  res.send(JSON.stringify({ Hello: 'World'}))
+  const data = {
+    Hello: 'World',
+  }
+  res.status(200)
+  res.send(JSON.stringify(data))
 });
 
 app.post('/api/login', (req, res) => {
   res.send('login Api')
 });
 
+let io = socket(server)
+
 io.on('connection', function (socket) {
     console.log('a user connected');
     socket.on('disconnect', function () {
         console.log('user disconnected');
     });
-    socket.on('chat', function (msg) {
-        socket.broadcast.emit('chat', msg);
-    });
-});
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+    socket.on('chat', function (msg) {
+        io.sockets.emit('new-msg', msg);
+        console.log(msg)
+    });
+
+});
