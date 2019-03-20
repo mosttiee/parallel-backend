@@ -17,6 +17,17 @@ const port = process.env.PORT || 8000;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+  res.set("Content-Type", "application/json");
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
@@ -50,10 +61,9 @@ app.get("/", (req, res) => {
   res.send("hello root world on port:" + port);
 });
 
-//db query secition
+//db query secition /api/database/room?roomName=A01
 app.get("/api/database/room", (req, res) => {
   const query = req.query;
-
   let filter = null;
   if (query.roomName != null) {
     filter = {
