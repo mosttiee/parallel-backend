@@ -1,18 +1,26 @@
 const mongoose = require('mongoose');
-const User = require('./User.js')
+const User = require('./User')
 
 const userRef = {type: mongoose.Schema.Types.ObjectId, ref: 'User'}
 
-const message = {
+const MessageSchema = new mongoose.Schema({
     text: {type: String, default:'', trim:true},
     sender: userRef
-}
+});
 
 const RoomsSchema = new mongoose.Schema({
     // roomID: {type: String, default:'', trim:true, required: true},
     roomName: {type: String, default:'', trim:true, required: true},
-    messages: [message],
+    messages: [MessageSchema],
     members: [userRef]
 });
 
-module.exports = mongoose.model('Rooms', RoomsSchema);
+const model_room = mongoose.model('Room', RoomsSchema);
+// const model_message = mongoose.model('Message', MessageSchema);
+
+module.exports = model_room;
+
+// module.exports = {
+//     Room: model_room,
+//     Message: model_message
+// };
