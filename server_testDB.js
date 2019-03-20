@@ -44,7 +44,7 @@ app.post('/api/login', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('hello root world')
+    res.send('hello root world on port:' + port)
 });
 
 //db query secition
