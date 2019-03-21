@@ -223,7 +223,7 @@ app.post("/api/room/leave", async (req, res) => {
       // });
       //remove joinedRoom from this object
       for (let i = user.joinedRoom.length; i--; ) {
-        if (user.joinedRoom[i].room.toString() == room._id.toString) {
+        if (user.joinedRoom[i].room.toString() == room._id.toString()) {
           //console.log("found joinedroom to remove at index " + i);
           user.joinedRoom.splice(i, 1);
           break;
