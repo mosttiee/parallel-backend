@@ -141,7 +141,7 @@ app.post("/api/database/user", (req, res) => {
     });
 });
 
-app.get("/api/database/user/:username", async (req, res) => {
+app.get("/api/user/:username", async (req, res) => {
   const name = req.params.username;
   const curUser = await User.findOne({ name });
   if (!curUser) {
