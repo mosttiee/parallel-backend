@@ -266,24 +266,8 @@ app.post("/api/database/user", (req, res) => {
     });
 });
 
-/**
- * store message to database when send message
- * @param {*} roomID id of room which you wish to send message in
- * @param {*} senderID id of sender who sends message
- * @param {*} messageText text of the message
- * @throws {*} errors
- */
 async function sendMessageDB(roomID, senderID, messageText) {
   //TODO
-  const update = {
-    $push: {
-      messages: {
-        text: messageText,
-        sender: senderID
-      }
-    }
-  }
-  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec()
 }
 
 app.get("/api/user/:username", async (req, res) => {
