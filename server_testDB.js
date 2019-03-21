@@ -15,108 +15,142 @@ server = http.createServer(app);
 io = socketIO.listen(server);
 const port = process.env.PORT || 8000;
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
+    process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 
 app.use((req, res, next) => {
-  //res.set("Content-Type", "application/json");
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+    //res.set("Content-Type", "application/json");
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept"
+    );
+    next();
 });
 
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
-process.argv.forEach(function(val, index, array) {
-  console.log(index + ": " + val);
-  if (index >= 2) {
-    if (val == "seed_database") {
-      console.log("seeding database...");
-      seeder.seed_database();
+process.argv.forEach(function (val, index, array) {
+    console.log(index + ": " + val);
+    if (index >= 2) {
+        if (val == "seed_database") {
+            console.log("seeding database...");
+            seeder.seed_database();
+        }
     }
-  }
 });
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
-  err => {
-    console.log("connection to database error");
-  }
+    () => { },
+    err => {
+        console.log("connection to database error");
+    }
 );
+mongoose.set('useCreateIndex', true);
 
 // test test
 app.get("/api/hello", (req, res) => {
-  res.send(JSON.stringify({ Hello: "World" }));
+    res.send(JSON.stringify({ Hello: "World" }));
 });
 
 app.post("/api/login", (req, res) => {
-  res.send("login Api");
+    res.send("login Api");
 });
 
 app.get("/", (req, res) => {
-  res.send("hello root world on port:" + port);
+    res.send("hello root world on port:" + port);
 });
 
-//db query secition /api/database/room?roomName=A01
+//db query section /api/database/room?roomName=A01
 app.get("/api/database/room", (req, res) => {
-  const query = req.query;
-  let filter = null;
-  if (query.roomName != null) {
-    filter = {
-      roomName: query.roomName
-    };
-  }
-  Room.find(filter)
-    .then(rooms => {
-      res.json({
-        confirmation: "success",
-        data: rooms
-      });
-    })
-    .catch(err => {
-      res.json({
-        confirmation: "fail",
-        message: err.message
-      });
-    });
+    const query = req.query;
+    let filter = null;
+    if (query.roomName != null) {
+        filter = {
+            roomName: query.roomName
+        };
+    }
+    Room.find(filter)
+        .then(rooms => {
+            res.json({
+                confirmation: "success",
+                data: rooms
+            });
+        })
+        .catch(err => {
+            res.json({
+                confirmation: "fail",
+                message: err.message
+            });
+        });
 });
 
-//create user
+/**
+ * Api to create room
+ * @usage /api/createroom, {roomName: 'aroomname', userID: '5c92fc59cf67874acc2d0b2e'}
+ * @returns {confirmation: "success/fail", data: { roomID: room._id, roomName: room.roomName }/errorMessage}
+ */
+app.post("/api/createroom", async (req, res) => {
+    const data = req.body;
+    let user = await User.findById(mongoose.Types.ObjectId(data.userID));
+    if (!user) {
+        res.json({
+            confirmation: "fail",
+            data: "A user with ID " + data.userID + " doesn't exist"
+        });
+    }
+    // user.update() //TODO update user
+    Room.create({ roomName: data.roomName, messages: [], members: [user._id] })
+        .then(room => {
+            user.joinedRoom.push({room: room._id, lastestRead: ""});
+            // console.log(user)
+            user.save();
+            res.json({
+                confirmation: "success",
+                data: { roomID: room._id, roomName: room.roomName }
+            });
+        })
+        .catch(err => {
+            res.json({
+                confirmation: "fail",
+                message: err.message
+            });
+        });
+});
+
+//create user by json body /api/database/user, {name:testname, joinedRoom:[]}
 app.post("/api/database/user", (req, res) => {
-  // console.log('recieve a request with this body')
-  // console.log(req.body)
-  // console.log('end body')
-  User.create(req.body)
-    .then(user => {
-      res.json({
-        confirmation: "success",
-        data: user
-      });
-    })
-    .catch(err => {
-      res.json({
-        confirmation: "fail",
-        message: err.message
-      });
-    });
+    // console.log('recieve a request with this body')
+    // console.log(req.body)
+    // console.log('end body')
+    User.create(req.body)
+        .then(user => {
+            res.json({
+                confirmation: "success",
+                data: user
+            });
+        })
+        .catch(err => {
+            res.json({
+                confirmation: "fail",
+                message: err.message
+            });
+        });
 });
 
 app.get("/api/database/user/:username", async (req, res) => {
-  const name = req.params.username;
-  const curUser = await User.findOne({ name });
-  if (!curUser) {
-    res.status(403).send("Successfully create user name:" + name);
-    let user = new User({ name: name });
-    user.save();
-  }
-  const token = {
-    id: curUser._id,
-    name: curUser.name
-  };
-  res.send(token);
+    const name = req.params.username;
+    const curUser = await User.findOne({ name });
+    if (!curUser) {
+        res.status(403).send("Successfully create user name:" + name);
+        let user = new User({ name: name });
+        user.save();
+    }
+    const token = {
+        id: curUser._id,
+        name: curUser.name
+    };
+    res.send(token);
 });
 
 //get user by id
@@ -139,29 +173,29 @@ app.get("/api/database/user/:username", async (req, res) => {
 // });
 
 app.get("/testdb", (req, res) => {
-  Room.find()
-    .then(rooms => {
-      res.json({
-        confirmation: "success",
-        data: rooms
-      });
-    })
-    .catch(err => {
-      res.json({
-        confirmation: "fail",
-        message: err.message
-      });
-    });
+    Room.find()
+        .then(rooms => {
+            res.json({
+                confirmation: "success",
+                data: rooms
+            });
+        })
+        .catch(err => {
+            res.json({
+                confirmation: "fail",
+                message: err.message
+            });
+        });
 });
 
-io.on("connection", function(socket) {
-  console.log("a user connected");
-  socket.on("disconnect", function() {
-    console.log("user disconnected");
-  });
-  socket.on("chat", function(msg) {
-    socket.broadcast.emit("chat", msg);
-  });
+io.on("connection", function (socket) {
+    console.log("a user connected");
+    socket.on("disconnect", function () {
+        console.log("user disconnected");
+    });
+    socket.on("chat", function (msg) {
+        socket.broadcast.emit("chat", msg);
+    });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));

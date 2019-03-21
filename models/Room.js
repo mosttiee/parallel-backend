@@ -10,7 +10,7 @@ const MessageSchema = new mongoose.Schema({
 
 const RoomsSchema = new mongoose.Schema({
     // roomID: {type: String, default:'', trim:true, required: true},
-    roomName: {type: String, default:'', trim:true, required: true},
+    roomName: {type: String, unique:true, dropDups: true, default:'', trim:true, required: true},
     messages: [MessageSchema],
     members: [userRef]
 });

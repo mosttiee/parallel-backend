@@ -5,7 +5,7 @@ const roomRef = { type: mongoose.Schema.Types.ObjectId, ref: "Room" };
 // const messageRef = {type: mongoose.Schema.Types.ObjectId, ref: 'Message'}
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, trim: true, required: true }, //TODO ROOM, lastest read
+  name: { type: String, unique: true, dropDups: true, trim: true, required: true }, //TODO ROOM, lastest read
   // password: { type: String, trim: true, required: false },
   joinedRoom: [
     {

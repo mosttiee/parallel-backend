@@ -38,7 +38,7 @@ module.exports = {
           sender: user_bob._id
         }
       ],
-      members: [user_beam._id, user_job._id, user_bob._id]
+      members: [user_beam._id, user_job._id]
     });
     let room_a02 = new Room({
       roomName: "A02",
