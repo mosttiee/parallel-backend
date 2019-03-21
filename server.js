@@ -1,27 +1,29 @@
-const express = require('express')
-const socket = require('socket.io')
+const dotenv = require("dotenv").config();
+const express = require("express");
+const socket = require("socket.io");
+const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
-const dotenv = require("dotenv").config();
-const mongoose = require("mongoose");
 const Room = require("./models/Room");
 const User = require("./models/User");
 const seeder = require("./initial/seeding");
 
+const port = process.env.PORT || 8000;
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
+
 let app = express()
-
 app.use(bodyParser.json());
-app.use( (req, res, next) => {
-  res.set('Content-Type', 'application/json');
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next()
-})
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
-const port = (process.env.PORT || 4000)
 let server = app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
@@ -47,13 +49,15 @@ app.get('/api/hello', (req, res) => {
   const data = {
     Hello: 'World',
   }
-  res.status(200)
-  res.send(JSON.stringify(data))
 });
 
-app.post('/api/login', (req, res) => {
-  res.send('login Api')
-});
+mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
+  () => {},
+  err => {
+    console.log("connection to database error");
+  }
+);
+mongoose.set("useCreateIndex", true);
 
 app.get("/", (req, res) => {
   res.send("hello root world on port:" + port);
@@ -190,15 +194,14 @@ app.get("/testdb", (req, res) => {
 
 let io = socket(server)
 
-io.on('connection', function (socket) {
-    console.log('a user connected');
-    socket.on('disconnect', function () {
-        console.log('user disconnected');
-    });
-    socket.on('chat', function (data) {
-      //timestamp -> database
-      io.sockets.emit('new-data', data);
-      console.log(data)
-    });
+io.on("connection", function(socket) {
+  console.log("a user connected");
+  socket.on("disconnect", function() {
+    console.log("user disconnected");
+  });
 
+  socket.on("chat", function(msg) {
+    io.sockets.emit("new-msg", msg);
+    console.log(msg);
+  });
 });
