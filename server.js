@@ -27,7 +27,7 @@ let server = app.listen(port, () => console.log(`Example app listening on port $
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
-process.argv.forEach(function(val, index, array) {
+process.argv.forEach(function (val, index, array) {
   console.log(index + ": " + val);
   if (index >= 2) {
     if (val == "seed_database") {
@@ -38,7 +38,7 @@ process.argv.forEach(function(val, index, array) {
 });
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
+  () => { },
   err => {
     console.log("connection to database error");
   }
@@ -46,7 +46,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
 mongoose.set("useCreateIndex", true);
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
+  () => { },
   err => {
     console.log("connection to database error");
   }
@@ -88,27 +88,27 @@ app.get("/api/database/room", (req, res) => {
  * notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
  */
 app.get("/api/room/getroomlist", (req, res) => {
-    const query = req.query;
-    if(query.userID == null){
-        res.json({
-            confirmation: "fail",
-            message: "?userID=abcdefg is required"
-        });
-        return;
-    }
-    User.findById(mongoose.Types.ObjectId(query.userID)).populate('joinedRoom.room', 'roomName').populate('notJoinedRoom.room', 'roomName').exec()
+  const query = req.query;
+  if (query.userID == null) {
+    res.json({
+      confirmation: "fail",
+      message: "?userID=abcdefg is required"
+    });
+    return;
+  }
+  User.findById(mongoose.Types.ObjectId(query.userID)).populate('joinedRoom.room', 'roomName').populate('notJoinedRoom.room', 'roomName').exec()
     .then(user => {
-        res.json({
-          confirmation: "success",
-          data: { joinedRoom: user.joinedRoom, notJoinedRoom: user.notJoinedRoom }
-        });
-      })
-      .catch(err => {
-        res.json({
-          confirmation: "fail",
-          message: err.message
-        });
+      res.json({
+        confirmation: "success",
+        data: { joinedRoom: user.joinedRoom, notJoinedRoom: user.notJoinedRoom }
       });
+    })
+    .catch(err => {
+      res.json({
+        confirmation: "fail",
+        message: err.message
+      });
+    });
 });
 
 /**
@@ -148,36 +148,36 @@ app.post("/api/room/createroom", async (req, res) => {
 });
 
 async function joinRoom(userID, roomID) {
-    let resultObj = {};
-    let user = await User.findById(mongoose.Types.ObjectId(userID));
-    if (!user) {
-        resultObj = {
-            confirmation: "fail",
-            data: "A user with ID " + userID + " doesn't exist"
-        };
-        return resultObj;
-    }
-    Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), { $push: {members: user._id} }).exec()
+  let resultObj = {};
+  let user = await User.findById(mongoose.Types.ObjectId(userID));
+  if (!user) {
+    resultObj = {
+      confirmation: "fail",
+      data: "A user with ID " + userID + " doesn't exist"
+    };
+    return resultObj;
+  }
+  Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), { $push: { members: user._id } }).exec()
     .then(room => {
-        user.joinedRoom.push({
-            room: room._id,
-            lastestRead: ""
-          })
-        // var index = array.indexOf(5);
-        user.notJoinedRoom.pull(room._id)
-        user.save();
-        resultObj = {
-            confirmation: "success",
-            data: "userID: " + userID + " successfully joined roomID: " + roomID
-        };
+      user.joinedRoom.push({
+        room: room._id,
+        lastestRead: ""
+      })
+      // var index = array.indexOf(5);
+      user.notJoinedRoom.pull(room._id)
+      user.save();
+      resultObj = {
+        confirmation: "success",
+        data: "userID: " + userID + " successfully joined roomID: " + roomID
+      };
     })
     .catch(err => {
-        resultObj = {
-            confirmation: "fail",
-            message: err.message
+      resultObj = {
+        confirmation: "fail",
+        message: err.message
       }
     })
-    return resultObj;
+  return resultObj;
 }
 /**
  * Api to join room
@@ -185,10 +185,10 @@ async function joinRoom(userID, roomID) {
  * @returns {confirmation: "success/fail", data: successfulMessage/errorMessage}
  */
 app.post("/api/room/join", async (req, res) => {
-    const data = req.body;
-    joinRoom(data.userID, data.roomID).then(resultObj => {
-        res.json(resultObj)
-    })
+  const data = req.body;
+  joinRoom(data.userID, data.roomID).then(resultObj => {
+    res.json(resultObj)
+  })
 })
 
 //Api for leaving a room
@@ -213,12 +213,14 @@ app.post("/api/room/leave", async (req, res) => {
       //   lastestRead: ""
       // });
       //remove joinedRoom from this object
-      for( let i = user.joinedRoom.length-1; i--;){
-        if ( user.joinedRoom[i].room == room._id) { 
+      for (let i = user.joinedRoom.length - 1; i--;) {
+        if (user.joinedRoom[i].room == room._id) {
+          console.log("found joinedroom to remove at index " + i)
           user.joinedRoom.splice(i, 1);
           break
         }
       }
+      console.log(user.joinedRoom)
 
       user.save();
       let result = {
@@ -256,6 +258,10 @@ app.post("/api/database/user", (req, res) => {
       });
     });
 });
+
+async function sendMessageDB(roomID, senderID, messageText) {
+  //TODO
+}
 
 app.get("/api/user/:username", async (req, res) => {
   const name = req.params.username;
@@ -319,13 +325,13 @@ app.get("/testdb", (req, res) => {
 
 let io = socket(server)
 
-io.on("connection", function(socket) {
+io.on("connection", function (socket) {
   console.log("a user connected");
-  socket.on("disconnect", function() {
+  socket.on("disconnect", function () {
     console.log("user disconnected");
   });
 
-  socket.on("chat", function(msg) {
+  socket.on("chat", function (msg) {
     io.sockets.emit("new-msg", msg);
     console.log(msg);
   });
@@ -339,9 +345,9 @@ io.on("connection", function(socket) {
   })
 
   socket.on("message", (data) => {
-    const {roomId} = data
+    const { roomId } = data
     console.log(data)
     // CALL DATABASE FUNCTION
-    io.to(roomId).emit("new-msg",data)
+    io.to(roomId).emit("new-msg", data)
   })
 });
