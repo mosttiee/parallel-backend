@@ -16,13 +16,13 @@ require parameter ?userID=5c92fc59cf67874acc2d0b2e e.g. http://localhost:3000/ap
 
 return {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}], notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
 
-## GET "/api/user/username"
+## POST "/api/room/join"
 
-get id and name of username (does not exist in database --> create new user)
+allow user to join a group chat room
 
-require /username e.g. /api/user/job
+require body {userID: '5c92fc59cf67874acc2d0b2e', roomID: '5c92fc59cf67874acc2d0b2e'}
 
-return token = {id:usename.\_id, name: username.name}
+return {confirmation: "success/fail", data: successfulMessage/errorMessage}
 
 ## POST "/api/room/leave"
 
@@ -32,3 +32,11 @@ require body = {userID: "userid", roomID:"roomID" }
 
 return result = { confirmation: "success", data: "userID successfully leave roomID" } //success
 or result = { confirmation: "failed", data: err.message } //failed
+
+## GET "/api/user/username"
+
+get id and name of username (does not exist in database --> create new user)
+
+require /username e.g. /api/user/job
+
+return token = {id:usename.\_id, name: username.name}
