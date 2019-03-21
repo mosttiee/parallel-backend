@@ -331,16 +331,18 @@ io.on("connection", function (socket) {
     console.log("user disconnected");
   });
 
-  socket.on("chat", function (msg) {
-    io.sockets.emit("new-msg", msg);
-    console.log(msg);
-  });
 
   socket.on("joinRoom", (roomId) => {
     socket.join(roomId, () => {
       let rooms = Object.keys(socket.rooms);
       console.log(rooms); // [ <socket.id>, 'room 237' ]
       //this.socket.to('room 237').emit('a new user has joined the room'); // broadcast to everyone in the room
+    });
+  })
+
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId, () => {
+      console.log(rooms);
     });
   })
 
