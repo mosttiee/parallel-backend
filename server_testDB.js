@@ -104,7 +104,7 @@ app.post("/api/createroom", async (req, res) => {
       user.joinedRoom.push({ room: room._id, lastestRead: "" });
       // console.log(user)
       user.save();
-      User.updateMany({}, { $push: { notJoinedRoom: [{ room: room._id }] } });
+      User.updateMany({}, { $push: { notJoinedRoom: { room: room._id } } });
       res.json({
         confirmation: "success",
         data: { roomID: room._id, roomName: room.roomName }
@@ -142,17 +142,25 @@ app.get("/api/database/user/:username", async (req, res) => {
   const name = req.params.username;
   const curUser = await User.findOne({ name });
   if (!curUser) {
-    res.status(403).send("Successfully create user name:" + name);
-    let user = new User({ name: name });
+    // res.status(403).send("Successfully create user name:" + name);
+    let notjoinlist = await Room.find({}); //.populate({ path: "notJoinedRoom.room", select: "roomName" });
+    let user = new User({
+      name: name,
+      notJoinedRoom: notjoinlist
+    });
     user.save();
+    const token = {
+      id: user._id,
+      name: name
+    };
+    res.send(token);
+  } else {
+    const token = {
+      id: curUser._id,
+      name: curUser.name
+    };
+    res.send(token);
   }
-  const token = {
-    id: curUser._id,
-    name: curUser.name,
-    joinedRoom: curUser.joinedRoom,
-    notJoinedRoom: curUser.notJoinedRoom
-  };
-  res.send(token);
 });
 
 //get user by id
