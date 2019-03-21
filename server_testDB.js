@@ -99,12 +99,12 @@ app.post("/api/createroom", async (req, res) => {
       data: "A user with ID " + data.userID + " doesn't exist"
     });
   }
-  // user.update() //TODO update user
   Room.create({ roomName: data.roomName, messages: [], members: [user._id] })
     .then(room => {
       user.joinedRoom.push({ room: room._id, lastestRead: "" });
       // console.log(user)
       user.save();
+      User.updateMany({}, { $push: { notJoinedRoom: [{ room: room._id }] } });
       res.json({
         confirmation: "success",
         data: { roomID: room._id, roomName: room.roomName }
