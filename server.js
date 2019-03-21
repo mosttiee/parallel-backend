@@ -101,7 +101,7 @@ app.get("/api/room/getroomlist", (req, res) => {
   }
   User.findById(mongoose.Types.ObjectId(query.userID))
     .populate("joinedRoom.room", "roomName")
-    .populate("notJoinedRoom.room", "roomName")
+    .populate("notJoinedRoom", "roomName")
     .exec()
     .then(user => {
       res.json({
