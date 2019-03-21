@@ -9,9 +9,10 @@ const User = require("./models/User");
 const seeder = require("./initial/seeding");
 
 const port = process.env.PORT || 8000;
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 
-let app = express()
+let app = express();
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
@@ -22,7 +23,9 @@ app.use((req, res, next) => {
   next();
 });
 
-let server = app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+let server = app.listen(port, () =>
+  console.log(`Example app listening on port ${port}!`)
+);
 
 //processing arguments
 const args = process.argv;
@@ -96,7 +99,10 @@ app.get("/api/room/getroomlist", (req, res) => {
     });
     return;
   }
-  User.findById(mongoose.Types.ObjectId(query.userID)).populate('joinedRoom.room', 'roomName').populate('notJoinedRoom.room', 'roomName').exec()
+  User.findById(mongoose.Types.ObjectId(query.userID))
+    .populate("joinedRoom.room", "roomName")
+    .populate("notJoinedRoom.room", "roomName")
+    .exec()
     .then(user => {
       res.json({
         confirmation: "success",
@@ -157,14 +163,17 @@ async function joinRoom(userID, roomID) {
     };
     return resultObj;
   }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), { $push: { members: user._id } }).exec()
+  Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
+    $push: { members: user._id }
+  })
+    .exec()
     .then(room => {
       user.joinedRoom.push({
         room: room._id,
         lastestRead: ""
-      })
+      });
       // var index = array.indexOf(5);
-      user.notJoinedRoom.pull(room._id)
+      user.notJoinedRoom.pull(room._id);
       user.save();
       resultObj = {
         confirmation: "success",
@@ -175,8 +184,8 @@ async function joinRoom(userID, roomID) {
       resultObj = {
         confirmation: "fail",
         message: err.message
-      }
-    })
+      };
+    });
   return resultObj;
 }
 /**
@@ -187,9 +196,9 @@ async function joinRoom(userID, roomID) {
 app.post("/api/room/join", async (req, res) => {
   const data = req.body;
   joinRoom(data.userID, data.roomID).then(resultObj => {
-    res.json(resultObj)
-  })
-})
+    res.json(resultObj);
+  });
+});
 
 //Api for leaving a room
 //usage /api/room/leave , {userID: "userid", roomID:"roomID" }
@@ -213,15 +222,13 @@ app.post("/api/room/leave", async (req, res) => {
       //   lastestRead: ""
       // });
       //remove joinedRoom from this object
-      for (let i = user.joinedRoom.length - 1; i--;) {
-        if (user.joinedRoom[i].room == room._id) {
-          console.log("found joinedroom to remove at index " + i)
+      for (let i = user.joinedRoom.length; i--;) {
+        if (user.joinedRoom[i].room.toString() == room._id.toString()) {
+          //console.log("found joinedroom to remove at index " + i);
           user.joinedRoom.splice(i, 1);
-          break
+          break;
         }
       }
-      console.log(user.joinedRoom)
-
       user.save();
       let result = {
         confirmation: "success",
@@ -259,8 +266,24 @@ app.post("/api/database/user", (req, res) => {
     });
 });
 
+/**
+ * store message to database when send message
+ * @param {*} roomID id of room which you wish to send message in
+ * @param {*} senderID id of sender who sends message
+ * @param {*} messageText text of the message
+ * @throws {*} errors
+ */
 async function sendMessageDB(roomID, senderID, messageText) {
   //TODO
+  const update = {
+    $push: {
+      messages: {
+        text: messageText,
+        sender: senderID
+      }
+    }
+  }
+  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec()
 }
 
 app.get("/api/user/:username", async (req, res) => {
@@ -268,7 +291,7 @@ app.get("/api/user/:username", async (req, res) => {
   const curUser = await User.findOne({ name });
   if (!curUser) {
     // res.status(403).send("Successfully create user name:" + name);
-    let notjoinlist = await Room.find({}).populate('room');
+    let notjoinlist = await Room.find({}).populate("room");
     let user = new User({
       name: name,
       notJoinedRoom: notjoinlist
@@ -323,7 +346,7 @@ app.get("/testdb", (req, res) => {
     });
 });
 
-let io = socket(server)
+let io = socket(server);
 
 io.on("connection", function (socket) {
   console.log("a user connected");
@@ -332,24 +355,24 @@ io.on("connection", function (socket) {
   });
 
 
-  socket.on("joinRoom", (roomId) => {
+  socket.on("joinRoom", roomId => {
     socket.join(roomId, () => {
       let rooms = Object.keys(socket.rooms);
       console.log(rooms); // [ <socket.id>, 'room 237' ]
       //this.socket.to('room 237').emit('a new user has joined the room'); // broadcast to everyone in the room
     });
-  })
+  });
 
-  // socket.on("leaveRoom", (roomId) => {
-  //   socket.leave(roomId, () => {
-  //     console.log(rooms);
-  //   });
-  // })
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId, () => {
+      console.log("leaveRoom");
+    });
+  })
 
   socket.on("message", (data) => {
-    const { roomId } = data
+    const { roomId, text, userId } = data
     console.log(data)
-    // CALL DATABASE FUNCTION
-    io.to(roomId).emit("new-msg", data)
-  })
+    //sendMessageDB(roomId, userId, text)
+    io.to(roomId).emit("new-msg", data);
+  });
 });
