@@ -85,6 +85,45 @@ app.get("/api/database/room", (req, res) => {
     });
 });
 
+//Api for leaving a room
+//usage /api/user/leave , {userID: "userid", roomID:"roomID" }
+app.post("/api/user/leave", async (req, res) => {
+  const data = req.body;
+  let user = await User.findById(mongoose.Types.ObjectId(data.userID));
+  if (!user) {
+    res.json({
+      confirmation: "failed",
+      data: "A user with ID " + data.userID + " doesn't exist"
+    });
+  }
+  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
+    $pull: { members: user._id }
+  })
+    .exec()
+    .then(room => {
+      const rooms = {
+        room: room._id,
+        lastestRead: ""
+      };
+      user.notJoinedRoom.push(rooms);
+      user.joinedRoom.pull(rooms);
+      user.save();
+      let result = {
+        confirmation: "success",
+        data:
+          "userID: " + user._id + " successfully leave roomID " + data.roomID
+      };
+      res.send(result);
+    })
+    .catch(err => {
+      let result = {
+        confirmation: "failed",
+        data: err.message
+      };
+      res.send(result);
+    });
+});
+
 /**
  * Api to create room
  * @usage /api/createroom, {roomName: 'aroomname', userID: '5c92fc59cf67874acc2d0b2e'}
