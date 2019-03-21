@@ -86,8 +86,8 @@ app.get("/api/database/room", (req, res) => {
 });
 
 //Api for leaving a room
-//usage /api/user/leave , {userID: "userid", roomID:"roomID" }
-app.post("/api/user/leave", async (req, res) => {
+//usage /api/room/leave , {userID: "userid", roomID:"roomID" }
+app.post("/api/room/leave", async (req, res) => {
   const data = req.body;
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
@@ -101,12 +101,11 @@ app.post("/api/user/leave", async (req, res) => {
   })
     .exec()
     .then(room => {
-      const rooms = {
+      user.notJoinedRoom.push(room._id);
+      user.joinedRoom.pull({
         room: room._id,
         lastestRead: ""
-      };
-      user.notJoinedRoom.push(rooms);
-      user.joinedRoom.pull(rooms);
+      });
       user.save();
       let result = {
         confirmation: "success",
@@ -202,13 +201,12 @@ async function joinRoom(userID, roomID) {
     }
     Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), { $push: {members: user._id} }).exec()
     .then(room => {
-        const roomline = {
+        user.joinedRoom.push({
             room: room._id,
             lastestRead: ""
-          }
-        user.joinedRoom.push(roomline)
+          })
         // var index = array.indexOf(5);
-        user.notJoinedRoom.pull(roomline)
+        user.notJoinedRoom.pull(room._id)
         user.save();
         resultObj = {
             confirmation: "success",
