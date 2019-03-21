@@ -17,9 +17,8 @@ const port = process.env.PORT || 8000;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 
-app.use(bodyParser.json());
 app.use((req, res, next) => {
-  res.set("Content-Type", "application/json");
+  //res.set("Content-Type", "application/json");
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -105,11 +104,14 @@ app.post("/api/database/user", (req, res) => {
     });
 });
 
-app.get("/api/database/user/:name", async (req, res) => {
-  const name = req.params.name;
+app.get("/api/database/user/:username", async (req, res) => {
+  const name = req.params.username;
   const curUser = await User.findOne({ name });
-  //   const id = await curUser._id;
-  if (!curUser) return res.status(403).send("Invalid username or password");
+  if (!curUser) {
+    res.status(403).send("Successfully create user name:" + name);
+    let user = new User({ name: name });
+    user.save();
+  }
   const token = {
     id: curUser._id,
     name: curUser.name

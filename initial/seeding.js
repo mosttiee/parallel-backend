@@ -6,18 +6,15 @@ module.exports = {
   seed_database: function() {
     //---- Create User ----
     let user_beam = new User({
-      name: "beam",
-      password: "beam1234"
+      name: "beam"
     });
 
     let user_job = new User({
-      name: "job",
-      password: "job1234"
+      name: "job"
     });
 
     let user_bob = new User({
-      name: "bob",
-      password: "bob1234"
+      name: "bob"
     });
 
     user_beam.save();
