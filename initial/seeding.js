@@ -111,6 +111,12 @@ module.exports = {
       }
     ];
 
+    user_bob.notJoinedRoom = [
+      {
+        room: room_a01._id
+      }
+    ];
+
     user_beam.save();
     user_job.save();
     user_bob.save();
