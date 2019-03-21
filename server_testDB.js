@@ -86,11 +86,41 @@ app.get("/api/database/room", (req, res) => {
 });
 
 /**
+ * Api to get room list(both join and unjoin) from a user
+ * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
+ * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}], 
+ * notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
+ */
+app.get("/api/room/getroomlist", (req, res) => {
+    const query = req.query;
+    if(query.userID == null){
+        res.json({
+            confirmation: "fail",
+            message: "?userID=abcdefg is required"
+        });
+        return;
+    }
+    User.findById(mongoose.Types.ObjectId(query.userID)).populate('joinedRoom.room', 'roomName').populate('notJoinedRoom.room', 'roomName').exec()
+    .then(user => {
+        res.json({
+          confirmation: "success",
+          data: { joinedRoom: user.joinedRoom, notJoinedRoom: user.notJoinedRoom }
+        });
+      })
+      .catch(err => {
+        res.json({
+          confirmation: "fail",
+          message: err.message
+        });
+      });
+});
+
+/**
  * Api to create room
- * @usage /api/createroom, {roomName: 'aroomname', userID: '5c92fc59cf67874acc2d0b2e'}
+ * @usage /api/room/createroom, {roomName: 'aroomname', userID: '5c92fc59cf67874acc2d0b2e'}
  * @returns {confirmation: "success/fail", data: { roomID: room._id, roomName: room.roomName }/errorMessage}
  */
-app.post("/api/createroom", async (req, res) => {
+app.post("/api/room/createroom", async (req, res) => {
   const data = req.body;
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
