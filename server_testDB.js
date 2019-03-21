@@ -90,7 +90,7 @@ app.get("/api/database/room", (req, res) => {
  * @usage /api/createroom, {roomName: 'aroomname', userID: '5c92fc59cf67874acc2d0b2e'}
  * @returns {confirmation: "success/fail", data: { roomID: room._id, roomName: room.roomName }/errorMessage}
  */
-app.post("/api/createroom", async (req, res) => {
+app.post("/api/room/createroom", async (req, res) => {
   const data = req.body;
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
