@@ -340,11 +340,11 @@ io.on("connection", function (socket) {
     });
   })
 
-  socket.on("leaveRoom", (roomId) => {
-    socket.leave(roomId, () => {
-      console.log(rooms);
-    });
-  })
+  // socket.on("leaveRoom", (roomId) => {
+  //   socket.leave(roomId, () => {
+  //     console.log(rooms);
+  //   });
+  // })
 
   socket.on("message", (data) => {
     const { roomId } = data
