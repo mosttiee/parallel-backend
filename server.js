@@ -30,7 +30,7 @@ let server = app.listen(port, () =>
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
-process.argv.forEach(function(val, index, array) {
+process.argv.forEach(function (val, index, array) {
   console.log(index + ": " + val);
   if (index >= 2) {
     if (val == "seed_database") {
@@ -41,7 +41,7 @@ process.argv.forEach(function(val, index, array) {
 });
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
+  () => { },
   err => {
     console.log("connection to database error");
   }
@@ -49,7 +49,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
 mongoose.set("useCreateIndex", true);
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
+  () => { },
   err => {
     console.log("connection to database error");
   }
@@ -222,7 +222,7 @@ app.post("/api/room/leave", async (req, res) => {
       //   lastestRead: ""
       // });
       //remove joinedRoom from this object
-      for (let i = user.joinedRoom.length; i--; ) {
+      for (let i = user.joinedRoom.length; i--;) {
         if (user.joinedRoom[i].room.toString() == room._id.toString()) {
           //console.log("found joinedroom to remove at index " + i);
           user.joinedRoom.splice(i, 1);
@@ -277,8 +277,10 @@ async function sendMessageDB(roomID, senderID, messageText) {
   //TODO
   const update = {
     $push: {
-      text: messageText,
-      sender: senderID
+      messages: {
+        text: messageText,
+        sender: senderID
+      }
     }
   }
   return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec()
@@ -346,13 +348,13 @@ app.get("/testdb", (req, res) => {
 
 let io = socket(server);
 
-io.on("connection", function(socket) {
+io.on("connection", function (socket) {
   console.log("a user connected");
-  socket.on("disconnect", function() {
+  socket.on("disconnect", function () {
     console.log("user disconnected");
   });
 
-  socket.on("chat", function(msg) {
+  socket.on("chat", function (msg) {
     io.sockets.emit("new-msg", msg);
     console.log(msg);
   });
