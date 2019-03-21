@@ -104,7 +104,7 @@ app.post("/api/createroom", async (req, res) => {
             user.joinedRoom.push({room: room._id, lastestRead: ""});
             // console.log(user)
             user.save();
-            User.updateMany({}, {$push: {notJoinedRoom: {room: room._id, lastestRead: ""}}})
+            User.updateMany({}, {$push: {notJoinedRoom: [{room: room._id}]}})
             res.json({
                 confirmation: "success",
                 data: { roomID: room._id, roomName: room.roomName }
