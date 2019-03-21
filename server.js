@@ -204,4 +204,19 @@ io.on("connection", function(socket) {
     io.sockets.emit("new-msg", msg);
     console.log(msg);
   });
+
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId, () => {
+      let rooms = Object.keys(socket.rooms);
+      console.log(rooms); // [ <socket.id>, 'room 237' ]
+      //this.socket.to('room 237').emit('a new user has joined the room'); // broadcast to everyone in the room
+    });
+  })
+
+  socket.on("message", (data) => {
+    const {roomId} = data
+    console.log(data)
+    // CALL DATABASE FUNCTION
+    io.to(roomId).emit("new-msg",data)
+  })
 });

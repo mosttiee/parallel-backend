@@ -18,7 +18,7 @@ const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/gchat";
 
 app.use((req, res, next) => {
-  //res.set("Content-Type", "application/json");
+  res.set("Content-Type", "application/json");
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
     "Access-Control-Allow-Headers",
@@ -88,7 +88,7 @@ app.get("/api/database/room", (req, res) => {
 /**
  * Api to get room list(both join and unjoin) from a user
  * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
- * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}], 
+ * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}],
  * notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
  */
 app.get("/api/room/getroomlist", (req, res) => {
