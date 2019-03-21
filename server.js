@@ -81,44 +81,6 @@ app.get("/api/database/room", (req, res) => {
     });
 });
 
-//Api for leaving a room
-//usage /api/room/leave , {userID: "userid", roomID:"roomID" }
-app.post("/api/room/leave", async (req, res) => {
-  const data = req.body;
-  let user = await User.findById(mongoose.Types.ObjectId(data.userID));
-  if (!user) {
-    res.json({
-      confirmation: "failed",
-      data: "A user with ID " + data.userID + " doesn't exist"
-    });
-  }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
-    $pull: { members: user._id }
-  })
-    .exec()
-    .then(room => {
-      user.notJoinedRoom.push(room._id);
-      user.joinedRoom.pull({
-        room: room._id,
-        lastestRead: ""
-      });
-      user.save();
-      let result = {
-        confirmation: "success",
-        data:
-          "userID: " + user._id + " successfully leave roomID " + data.roomID
-      };
-      res.send(result);
-    })
-    .catch(err => {
-      let result = {
-        confirmation: "failed",
-        data: err.message
-      };
-      res.send(result);
-    });
-});
-
 /**
  * Api to get room list(both join and unjoin) from a user
  * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
@@ -228,6 +190,52 @@ app.post("/api/room/join", async (req, res) => {
         res.json(resultObj)
     })
 })
+
+//Api for leaving a room
+//usage /api/room/leave , {userID: "userid", roomID:"roomID" }
+app.post("/api/room/leave", async (req, res) => {
+  const data = req.body;
+  let user = await User.findById(mongoose.Types.ObjectId(data.userID));
+  if (!user) {
+    res.json({
+      confirmation: "failed",
+      data: "A user with ID " + data.userID + " doesn't exist"
+    });
+  }
+  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
+    $pull: { members: user._id }
+  })
+    .exec()
+    .then(room => {
+      user.notJoinedRoom.push(room._id); //Good
+      // user.joinedRoom.pull({ //This code will not work
+      //   room: room._id,
+      //   lastestRead: ""
+      // });
+      //remove joinedRoom from this object
+      for( let i = user.joinedRoom.length-1; i--;){
+        if ( user.joinedRoom[i].room == room._id) { 
+          user.joinedRoom.splice(i, 1);
+          break
+        }
+      }
+
+      user.save();
+      let result = {
+        confirmation: "success",
+        data:
+          "userID: " + user._id + " successfully leave roomID " + data.roomID
+      };
+      res.send(result);
+    })
+    .catch(err => {
+      let result = {
+        confirmation: "failed",
+        data: err.message
+      };
+      res.send(result);
+    });
+});
 
 //create user by json body /api/database/user, {name:testname, joinedRoom:[]}
 app.post("/api/database/user", (req, res) => {
