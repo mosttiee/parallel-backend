@@ -23,3 +23,12 @@ get id and name of username (does not exist in database --> create new user)
 require /username e.g. /api/user/job
 
 return token = {id:usename.\_id, name: username.name}
+
+## POST "/api/user/leave"
+
+leave group
+
+require body = {userID: "userid", roomID:"roomID" }
+
+return result = { confirmation: "success", data: "userID successfully leave roomID" } //success
+or result = { confirmation: "failed", data: err.message } //failed
