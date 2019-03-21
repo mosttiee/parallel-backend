@@ -18,7 +18,7 @@ return {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", 
 
 ## GET "/api/user/username"
 
-get id and name of username (doesn not exist in database --> create new user)
+get id and name of username (does not exist in database --> create new user)
 
 require /username e.g. /api/user/job
 
