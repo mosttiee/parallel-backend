@@ -20,9 +20,7 @@ const UserSchema = new mongoose.Schema({
     }
   ],
   notJoinedRoom: [
-    {
-      room: roomRef
-    }
+    roomRef
   ]
 });
 

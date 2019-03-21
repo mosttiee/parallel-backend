@@ -85,6 +85,44 @@ app.get("/api/database/room", (req, res) => {
     });
 });
 
+//Api for leaving a room
+//usage /api/room/leave , {userID: "userid", roomID:"roomID" }
+app.post("/api/room/leave", async (req, res) => {
+  const data = req.body;
+  let user = await User.findById(mongoose.Types.ObjectId(data.userID));
+  if (!user) {
+    res.json({
+      confirmation: "failed",
+      data: "A user with ID " + data.userID + " doesn't exist"
+    });
+  }
+  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
+    $pull: { members: user._id }
+  })
+    .exec()
+    .then(room => {
+      user.notJoinedRoom.push(room._id);
+      user.joinedRoom.pull({
+        room: room._id,
+        lastestRead: ""
+      });
+      user.save();
+      let result = {
+        confirmation: "success",
+        data:
+          "userID: " + user._id + " successfully leave roomID " + data.roomID
+      };
+      res.send(result);
+    })
+    .catch(err => {
+      let result = {
+        confirmation: "failed",
+        data: err.message
+      };
+      res.send(result);
+    });
+});
+
 /**
  * Api to get room list(both join and unjoin) from a user
  * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
@@ -151,6 +189,50 @@ app.post("/api/room/createroom", async (req, res) => {
     });
 });
 
+async function joinRoom(userID, roomID) {
+    let resultObj = {};
+    let user = await User.findById(mongoose.Types.ObjectId(userID));
+    if (!user) {
+        resultObj = {
+            confirmation: "fail",
+            data: "A user with ID " + userID + " doesn't exist"
+        };
+        return resultObj;
+    }
+    Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), { $push: {members: user._id} }).exec()
+    .then(room => {
+        user.joinedRoom.push({
+            room: room._id,
+            lastestRead: ""
+          })
+        // var index = array.indexOf(5);
+        user.notJoinedRoom.pull(room._id)
+        user.save();
+        resultObj = {
+            confirmation: "success",
+            data: "userID: " + userID + " successfully joined roomID: " + roomID
+        };
+    })
+    .catch(err => {
+        resultObj = {
+            confirmation: "fail",
+            message: err.message
+      }
+    })
+    return resultObj;
+}
+/**
+ * Api to join room
+ * @usage /api/room/join, {userID: '5c92fc59cf67874acc2d0b2e', roomID: '5c92fc59cf67874acc2d0b2e'}
+ * @returns {confirmation: "success/fail", data: successfulMessage/errorMessage}
+ */
+app.post("/api/room/join", async (req, res) => {
+    const data = req.body;
+    joinRoom(data.userID, data.roomID).then(resultObj => {
+        res.json(resultObj)
+    })
+})
+
 //create user by json body /api/database/user, {name:testname, joinedRoom:[]}
 app.post("/api/database/user", (req, res) => {
   // console.log('recieve a request with this body')
@@ -176,7 +258,7 @@ app.get("/api/user/:username", async (req, res) => {
   const curUser = await User.findOne({ name });
   if (!curUser) {
     // res.status(403).send("Successfully create user name:" + name);
-    let notjoinlist = await Room.find({}); //.populate({ path: "notJoinedRoom.room", select: "roomName" });
+    let notjoinlist = await Room.find({}).populate('room');
     let user = new User({
       name: name,
       notJoinedRoom: notjoinlist

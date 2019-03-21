@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Room = require("../models/Room");
 
 module.exports = {
-  seed_database: function() {
+  seed_database: async function() {
     //---- Create User ----
     let user_beam = new User({
       name: "beam"
@@ -17,9 +17,9 @@ module.exports = {
       name: "bob"
     });
 
-    user_beam.save();
-    user_job.save();
-    user_bob.save();
+    await user_beam.save();
+    await user_job.save();
+    await user_bob.save();
 
     //---- Create Rooms ----
     let room_a01 = new Room({
@@ -59,7 +59,7 @@ module.exports = {
       members: [user_beam._id, user_job._id, user_bob._id]
     });
 
-    room_a01.save(function(error) {
+    await room_a01.save(function(error) {
       if (!error) {
         Room.find({})
           .populate("members")
@@ -70,7 +70,7 @@ module.exports = {
       }
     });
 
-    room_a02.save(function(error) {
+    await room_a02.save(function(error) {
       if (!error) {
         Room.find({})
           .populate("members")
@@ -111,14 +111,10 @@ module.exports = {
       }
     ];
 
-    user_bob.notJoinedRoom = [
-      {
-        room: room_a01._id
-      }
-    ];
+    user_bob.notJoinedRoom = [room_a01._id];
 
-    user_beam.save();
-    user_job.save();
-    user_bob.save();
+    await user_beam.save();
+    await user_job.save();
+    await user_bob.save();
   }
 };
