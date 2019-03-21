@@ -24,7 +24,7 @@ require /username e.g. /api/user/job
 
 return token = {id:usename.\_id, name: username.name}
 
-## POST "/api/user/leave"
+## POST "/api/room/leave"
 
 leave group
 
