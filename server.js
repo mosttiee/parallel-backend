@@ -118,6 +118,7 @@ app.get("/api/room/getroomlist", (req, res) => {
  */
 app.post("/api/room/createroom", async (req, res) => {
   const data = req.body;
+  // console.log(data)
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
     res.json({
@@ -126,12 +127,11 @@ app.post("/api/room/createroom", async (req, res) => {
     });
   }
   Room.create({ roomName: data.roomName, messages: [], members: [user._id] })
-    .then(room => {
-      User.updateMany(
-        {},
-        { $push: { notJoinedRoom: { room: room._id } } }
-      ).exec();
+    .then(async room => {
+      await User.updateMany( {}, { $push: { notJoinedRoom: room._id }}).exec();
       user.joinedRoom.push({ room: room._id, lastestRead: "-1" });
+      // console.log("pulling " + room._id)
+      user.notJoinedRoom.pull(room._id);
       // console.log(user)
       user.save();
       res.json({
@@ -176,7 +176,6 @@ async function joinRoom(userID, roomID) {
         room: room._id,
         lastestRead: "-1"
       });
-      // var index = array.indexOf(5);
       user.notJoinedRoom.pull(room._id);
       user.save();
       resultObj = {
@@ -294,7 +293,7 @@ app.post("/api/room/leave", async (req, res) => {
       data: "A user with ID " + data.userID + " doesn't exist"
     });
   }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
+  await Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
     $pull: { members: user._id }
   })
     .exec()
@@ -477,7 +476,7 @@ app.get("/testdb", (req, res) => {
 });
 
 let io = socket(server);
-// io.adapter(redis({ host: 'localhost', port: 6379 }));
+io.adapter(redis({ host: 'localhost', port: 6379 }));
 
 io.on("connection", function(socket) {
   console.log("a user connected");
