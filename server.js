@@ -3,6 +3,7 @@ const express = require("express");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const redis = require('socket.io-redis');
 
 const Room = require("./models/Room");
 const User = require("./models/User");
@@ -211,8 +212,11 @@ app.post("/api/room/join", async (req, res) => {
 app.post("/api/room/fetchmessage", async (req, res) => {
   // console.log("inside /api/room/fetchmessage")
   const data = req.body;
-  let room = await Room.findById(mongoose.Types.ObjectId(data.roomID)).lean().exec()
-  if(!room) {
+  let room = await Room.findById(mongoose.Types.ObjectId(data.roomID))
+    .lean()
+    .populate("messages.sender", "name")
+    .exec();
+  if (!room) {
     res.json({
       confirmation: "fail",
       data: "A room with ID " + data.roomID + " doesn't exist"
@@ -231,38 +235,48 @@ app.post("/api/room/fetchmessage", async (req, res) => {
   // console.log(room.messages[0]._id)
   // console.log("typeof messages[0]._id: ")
   // console.log(typeof room.messages[0]._id)
-  if(data.lastestReadID == -1){
+
+  if (data.lastestReadID == -1) {
     res.json({
       confirmation: "success",
       data: room.messages.slice(0, room.messages.length)
     });
     return; //fetch everything
   }
-  const lastestReadID = mongoose.Types.ObjectId(data.lastestReadID)
+  const lastestReadID = mongoose.Types.ObjectId(data.lastestReadID);
   const roomMessageLenght = room.messages.length;
-  let fetchMessageLenght = (roomMessageLenght >= 10) ? 10: roomMessageLenght; //if room has less than 10 message then get the less number
+  let fetchMessageLenght = roomMessageLenght >= 10 ? 10 : roomMessageLenght; //if room has less than 10 message then get the less number
 
-  while(room.messages[roomMessageLenght-fetchMessageLenght]._id > lastestReadID){
+  while (
+    room.messages[roomMessageLenght - fetchMessageLenght]._id > lastestReadID
+  ) {
     fetchMessageLenght += 1;
     // console.log(fetchMessageLenght + ": " + room.messages[roomMessageLenght-fetchMessageLenght]._id + " == " + lastestReadID + " res => " + (room.messages[roomMessageLenght-fetchMessageLenght]._id == lastestReadID))
   }
-  while(room.messages[roomMessageLenght-fetchMessageLenght]._id < lastestReadID){
+  while (
+    room.messages[roomMessageLenght - fetchMessageLenght]._id < lastestReadID
+  ) {
     fetchMessageLenght -= 1;
   }
   fetchMessageLenght -= 1;
 
-  if(fetchMessageLenght == 0){
+  if (fetchMessageLenght == 0) {
     //already read latest message
-    fetchMessageLenght = (roomMessageLenght >= 10) ? 10: roomMessageLenght; // fetch 10 latestes or less
+    fetchMessageLenght = roomMessageLenght >= 10 ? 10 : roomMessageLenght; // fetch 10 latestes or less
     res.json({
       confirmation: "success",
-      data: room.messages.slice(roomMessageLenght-fetchMessageLenght, roomMessageLenght)
+      data: room.messages.slice(
+        roomMessageLenght - fetchMessageLenght,
+        roomMessageLenght
+      )
     });
-  }
-  else {
+  } else {
     res.json({
       confirmation: "success",
-      data: room.messages.slice(roomMessageLenght-fetchMessageLenght, roomMessageLenght)
+      data: room.messages.slice(
+        roomMessageLenght - fetchMessageLenght,
+        roomMessageLenght
+      )
     });
   }
 });
@@ -375,7 +389,10 @@ app.post("/api/user/updatelatestread", async (req, res) => {
       break;
     }
   }
-  user.joinedRoom.push({room: mongoose.Types.ObjectId(data.roomID), lastestRead: data.lastestReadID})
+  user.joinedRoom.push({
+    room: mongoose.Types.ObjectId(data.roomID),
+    lastestRead: data.lastestReadID
+  });
   await user.save();
   res.json({
     confirmation: "success",
@@ -429,13 +446,16 @@ app.get("/api/user/:username", async (req, res) => {
 
 let testmsgi = 0;
 app.get("/testsendmessagedb", (req, res) => {
-  console.log('sending message ' + testmsgi)
-  sendMessageDB('5c94a0f2b10b6f00176ab5c1', '5c9495ed87afa201f437a4bc', "message test " + testmsgi);
+  console.log("sending message " + testmsgi);
+  sendMessageDB(
+    "5c94a0f2b10b6f00176ab5c1",
+    "5c9495ed87afa201f437a4bc",
+    "message test " + testmsgi
+  );
   testmsgi += 1;
-  console.log('sent!!!! message ' + testmsgi)
-  res.json({confirmation: "success"})
+  console.log("sent!!!! message " + testmsgi);
+  res.json({ confirmation: "success" });
 });
-
 
 app.get("/testdb", (req, res) => {
   Room.find()
@@ -454,6 +474,7 @@ app.get("/testdb", (req, res) => {
 });
 
 let io = socket(server);
+io.adapter(redis({ host: 'localhost', port: 6379 }));
 
 io.on("connection", function(socket) {
   console.log("a user connected");
