@@ -196,7 +196,6 @@ async function joinRoom(userID, roomID) {
 app.post("/api/room/join", async (req, res) => {
   const data = req.body;
   joinRoom(data.userID, data.roomID).then(resultObj => {
-    console.log(resultObj);
     res.json(resultObj);
   });
 });
