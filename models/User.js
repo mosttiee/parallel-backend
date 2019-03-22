@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
   joinedRoom: [
     {
       room: roomRef,
-      lastestRead: { type: String, trim: true, default: "" } //When empty string it means that user never read any message
+      lastestRead: { type: String, trim: true, default: "-1" } //When empty string it means that user never read any message
     }
   ],
   notJoinedRoom: [

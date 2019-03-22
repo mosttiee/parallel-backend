@@ -49,3 +49,12 @@ get id and name of username (does not exist in database --> create new user)
 require /username e.g. /api/user/job
 
 return token = {id:usename.\_id, name: username.name}
+
+## POST "/api/user/updatelatestread" 
+
+API to update latest read message
+
+require body = {userID: '5c92fc59cf67874acc2d0b2e', roomID: '5c92fc59cf67874acc2d0b2e', lastestReadID:'-1'/'5c92fc59cf67874acc2d0b2e'}
+please note that **lastestReadID** can be **-1** to represent that you've not read any message
+
+return {confirmation: "success/fail", data: successfulMessage/errorMessage}
