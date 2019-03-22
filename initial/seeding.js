@@ -85,29 +85,29 @@ module.exports = {
     user_beam.joinedRoom = [
       {
         room: room_a01._id,
-        lastestRead: ""
+        lastestRead: "-1"
       },
       {
         room: room_a02._id,
-        lastestRead: ""
+        lastestRead: "-1"
       }
     ];
 
     user_job.joinedRoom = [
       {
         room: room_a01._id,
-        lastestRead: ""
+        lastestRead: "-1"
       },
       {
         room: room_a02._id,
-        lastestRead: ""
+        lastestRead: "-1"
       }
     ];
 
     user_bob.joinedRoom = [
       {
         room: room_a02._id,
-        lastestRead: ""
+        lastestRead: "-1"
       }
     ];
 

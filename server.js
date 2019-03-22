@@ -79,8 +79,8 @@ app.get("/api/database/room", (req, res) => {
 /**
  * Api to get room list(both join and unjoin) from a user
  * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
- * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}],
- * notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
+ * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "-1", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}],
+ * notJoinedRoom: [{ "lastestRead": "-1", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
  */
 app.get("/api/room/getroomlist", (req, res) => {
   const query = req.query;
@@ -129,7 +129,7 @@ app.post("/api/room/createroom", async (req, res) => {
         {},
         { $push: { notJoinedRoom: { room: room._id } } }
       ).exec();
-      user.joinedRoom.push({ room: room._id, lastestRead: "" });
+      user.joinedRoom.push({ room: room._id, lastestRead: "-1" });
       // console.log(user)
       user.save();
       res.json({
@@ -172,7 +172,7 @@ async function joinRoom(userID, roomID) {
     .then(room => {
       user.joinedRoom.push({
         room: room._id,
-        lastestRead: ""
+        lastestRead: "-1"
       });
       // var index = array.indexOf(5);
       user.notJoinedRoom.pull(room._id);
@@ -286,7 +286,7 @@ app.post("/api/room/leave", async (req, res) => {
       user.notJoinedRoom.push(room._id); //Good
       // user.joinedRoom.pull({ //This code will not work
       //   room: room._id,
-      //   lastestRead: ""
+      //   lastestRead: "-1"
       // });
       //remove joinedRoom from this object
       for (let i = user.joinedRoom.length; i--; ) {
