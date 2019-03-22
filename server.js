@@ -31,7 +31,7 @@ let server = app.listen(port, () =>
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
-process.argv.forEach(function(val, index, array) {
+args.forEach(function(val, index, array) {
   console.log(index + ": " + val);
   if (index >= 2) {
     if (val == "seed_database") {
@@ -363,7 +363,7 @@ async function sendMessageDB(roomID, senderID, messageText) {
       }
     }
   };
-  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec();
+  return await Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update, { new: true}).exec();
 }
 
 /**
@@ -445,13 +445,14 @@ app.get("/api/user/:username", async (req, res) => {
 // });
 
 let testmsgi = 0;
-app.get("/testsendmessagedb", (req, res) => {
+app.get("/testsendmessagedb", async (req, res) => {
   console.log("sending message " + testmsgi);
-  sendMessageDB(
-    "5c94a0f2b10b6f00176ab5c1",
-    "5c9495ed87afa201f437a4bc",
+  let ret = await sendMessageDB(
+    "5c9495ed87afa201f437a4c1",
+    "5c9495ed87afa201f437a4ba",
     "message test " + testmsgi
   );
+  console.log(ret);
   testmsgi += 1;
   console.log("sent!!!! message " + testmsgi);
   res.json({ confirmation: "success" });
