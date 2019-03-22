@@ -79,8 +79,8 @@ app.get("/api/database/room", (req, res) => {
 /**
  * Api to get room list(both join and unjoin) from a user
  * @usage /api/room/getroomlist?userID=5c92fc59cf67874acc2d0b2e
- * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}],
- * notJoinedRoom: [{ "lastestRead": "", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
+ * @returns {confirmation: "success/fail", data: { joinedRoom: [{ "lastestRead": "-1", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}],
+ * notJoinedRoom: [{ "lastestRead": "-1", "_id": "5c932df18662054eacc48ae0", "room": { "_id": "5c932df18662054eacc48ad5", "roomName": "A01"}}] }/errorMessage}
  */
 app.get("/api/room/getroomlist", (req, res) => {
   const query = req.query;
@@ -129,7 +129,7 @@ app.post("/api/room/createroom", async (req, res) => {
         {},
         { $push: { notJoinedRoom: { room: room._id } } }
       ).exec();
-      user.joinedRoom.push({ room: room._id, lastestRead: "" });
+      user.joinedRoom.push({ room: room._id, lastestRead: "-1" });
       // console.log(user)
       user.save();
       res.json({
@@ -172,7 +172,7 @@ async function joinRoom(userID, roomID) {
     .then(room => {
       user.joinedRoom.push({
         room: room._id,
-        lastestRead: ""
+        lastestRead: "-1"
       });
       // var index = array.indexOf(5);
       user.notJoinedRoom.pull(room._id);
@@ -214,7 +214,7 @@ app.post("/api/room/fetchmessage", async (req, res) => {
   let room = await Room.findById(mongoose.Types.ObjectId(data.roomID)).lean().exec()
   if(!room) {
     res.json({
-      confirmation: "failed",
+      confirmation: "fail",
       data: "A room with ID " + data.roomID + " doesn't exist"
     });
     return;
@@ -286,7 +286,7 @@ app.post("/api/room/leave", async (req, res) => {
       user.notJoinedRoom.push(room._id); //Good
       // user.joinedRoom.pull({ //This code will not work
       //   room: room._id,
-      //   lastestRead: ""
+      //   lastestRead: "-1"
       // });
       //remove joinedRoom from this object
       for (let i = user.joinedRoom.length; i--; ) {
@@ -351,6 +351,37 @@ async function sendMessageDB(roomID, senderID, messageText) {
   };
   return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec();
 }
+
+/**
+ * API to update latest read message
+ * @usage /api/user/updatelatestread, {userID: '5c92fc59cf67874acc2d0b2e', roomID: '5c92fc59cf67874acc2d0b2e', lastestReadID:'-1'/'5c92fc59cf67874acc2d0b2e'}
+ * @param {lastestReadID} can be -1 if you've not read anything yet
+ * @returns {confirmation: "success/fail", data: successfulMessage/errorMessage}
+ */
+app.post("/api/user/updatelatestread", async (req, res) => {
+  const data = req.body;
+  let user = await User.findById(mongoose.Types.ObjectId(data.userID));
+  if (!user) {
+    res.json({
+      confirmation: "fail",
+      data: "A user with ID " + data.userID + " doesn't exist"
+    });
+    return;
+  }
+  for (let i = user.joinedRoom.length; i--; ) {
+    if (user.joinedRoom[i].room.toString() == data.roomID.toString()) {
+      // console.log("found joinedroom to remove at index " + i + " and removing now");
+      user.joinedRoom.splice(i, 1);
+      break;
+    }
+  }
+  user.joinedRoom.push({room: mongoose.Types.ObjectId(data.roomID), lastestRead: data.lastestReadID})
+  await user.save();
+  res.json({
+    confirmation: "success",
+    data: "A user with ID " + data.userID + " have been updated"
+  });
+});
 
 app.get("/api/user/:username", async (req, res) => {
   const name = req.params.username;
