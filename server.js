@@ -202,7 +202,6 @@ app.post("/api/room/join", async (req, res) => {
   });
 });
 
-//API fetch message require roomID,userID,lastestReadID
 /**
  * API fetch message
  * @usage /api/room/fetchmessage, {roomID: '5c92fc59cf67874acc2d0b2e', lastestReadID:'-1'/'5c92fc59cf67874acc2d0b2e'}
