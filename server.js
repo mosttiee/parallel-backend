@@ -163,6 +163,16 @@ async function joinRoom(userID, roomID) {
     };
     return resultObj;
   }
+
+  for (let i = user.joinedRoom.length; i--; ) {
+    if (user.joinedRoom[i].room.toString() == roomID) {
+      resultObj = {
+        confirmation: "fail",
+        data: "A user with ID " + userID + " has been joined this group already"
+      };
+      return resultObj;
+    }
+  }
   await Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
     $push: { members: user._id }
   })
@@ -214,7 +224,7 @@ app.post("/api/room/leave", async (req, res) => {
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
     res.json({
-      confirmation: "failed",
+      confirmation: "fail",
       data: "A user with ID " + data.userID + " doesn't exist"
     });
   }
@@ -246,7 +256,7 @@ app.post("/api/room/leave", async (req, res) => {
     })
     .catch(err => {
       let result = {
-        confirmation: "failed",
+        confirmation: "fail",
         data: err.message
       };
       res.send(result);
