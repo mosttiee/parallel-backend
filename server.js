@@ -3,6 +3,7 @@ const express = require("express");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const redis = require('socket.io-redis');
 
 const Room = require("./models/Room");
 const User = require("./models/User");
@@ -473,6 +474,7 @@ app.get("/testdb", (req, res) => {
 });
 
 let io = socket(server);
+io.adapter(redis({ host: 'localhost', port: 6379 }));
 
 io.on("connection", function(socket) {
   console.log("a user connected");
