@@ -155,7 +155,17 @@ async function joinRoom(userID, roomID) {
     };
     return resultObj;
   }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
+
+  for (let i = user.joinedRoom.length; i--; ) {
+    if (user.joinedRoom[i].room.toString() == roomID) {
+      resultObj = {
+        confirmation: "fail",
+        data: "A user with ID " + userID + " has been joined this group already"
+      };
+      return resultObj;
+    }
+  }
+  await Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
     $push: { members: user._id }
   })
     .exec()
@@ -265,7 +275,7 @@ app.post("/api/room/leave", async (req, res) => {
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
     res.json({
-      confirmation: "failed",
+      confirmation: "fail",
       data: "A user with ID " + data.userID + " doesn't exist"
     });
   }
@@ -297,7 +307,7 @@ app.post("/api/room/leave", async (req, res) => {
     })
     .catch(err => {
       let result = {
-        confirmation: "failed",
+        confirmation: "fail",
         data: err.message
       };
       res.send(result);
@@ -421,7 +431,6 @@ io.on("connection", function(socket) {
     console.log("user disconnected");
   });
 
-
   socket.on("joinRoom", roomId => {
     socket.join(roomId, () => {
       let rooms = Object.keys(socket.rooms);
@@ -430,21 +439,21 @@ io.on("connection", function(socket) {
     });
   });
 
-  socket.on("leaveRoom", (roomId) => {
+  socket.on("leaveRoom", roomId => {
     socket.leave(roomId, () => {
       console.log("leaveRoom");
     });
-  })
+  });
 
-  socket.on("leaveRoomPermanantly", (roomId) => {
+  socket.on("leaveRoomPermanantly", roomId => {
     socket.leave(roomId, () => {
       console.log("leaveRoomPermanantly");
     });
-  })
+  });
 
-  socket.on("message", (data) => {
-    const { roomId, text, userId } = data
-    console.log(data)
+  socket.on("message", data => {
+    const { roomId, text, userId } = data;
+    console.log(data);
     //sendMessageDB(roomId, userId, text)
     io.to(roomId).emit("new-msg", data);
   });
