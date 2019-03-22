@@ -453,7 +453,7 @@ io.on("connection", function(socket) {
   socket.on("message", data => {
     const { roomId, text, userId } = data;
     console.log(data);
-    //sendMessageDB(roomId, userId, text)
+    sendMessageDB(roomId, userId, text)
     io.to(roomId).emit("new-msg", data);
   });
 });
