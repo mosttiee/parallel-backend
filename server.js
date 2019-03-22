@@ -271,6 +271,7 @@ app.post("/api/room/fetchmessage", async (req, res) => {
       )
     });
   } else {
+    fetchMessageLenght = (fetchMessageLenght < 10) ? ((roomMessageLenght >= 10) ? 10 : roomMessageLenght) : fetchMessageLenght
     res.json({
       confirmation: "success",
       data: room.messages.slice(
