@@ -48,14 +48,6 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
 );
 mongoose.set("useCreateIndex", true);
 
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => {},
-  err => {
-    console.log("connection to database error");
-  }
-);
-mongoose.set("useCreateIndex", true);
-
 app.get("/", (req, res) => {
   res.send("hello root world on port:" + port);
 });
@@ -200,11 +192,70 @@ app.post("/api/room/join", async (req, res) => {
   });
 });
 
-//API fetch message require userID,roomID,lastestRead
-app.post("api/message/fetch", async (req, res) => {
+//API fetch message require roomID,userID,lastestReadID
+/**
+ * API fetch message
+ * @usage /api/room/fetchmessage, {roomID: '5c92fc59cf67874acc2d0b2e', lastestReadID:'-1'/'5c92fc59cf67874acc2d0b2e'}
+ * @param {lastestReadID} can be -1 if you've not read anything yet
+ * @returns {confirmation: "success/fail", data: [{ "text": "message test 1", "_id": "5c949ade34dd484198a9dbe2", "sender": "5c9495ed87afa201f437a4bc"}]/errorMessage}
+ */
+app.post("/api/room/fetchmessage", async (req, res) => {
+  // console.log("inside /api/room/fetchmessage")
   const data = req.body;
-  const id = data.userID;
-  const roomID = data.roomID;
+  let room = await Room.findById(mongoose.Types.ObjectId(data.roomID)).lean().exec()
+  if(!room) {
+    res.json({
+      confirmation: "failed",
+      data: "A room with ID " + data.roomID + " doesn't exist"
+    });
+    return;
+  }
+  // console.log("room is: ")
+  // console.log(room)
+  // console.log("messages are: ")
+  // console.log(room.messages)
+  // console.log("messages[0]: ")
+  // console.log(room.messages[0])
+  // console.log("messages[0].keys(): ")
+  // console.log(Object.keys(room.messages[0]))
+  // console.log("messages[0]._id: ")
+  // console.log(room.messages[0]._id)
+  // console.log("typeof messages[0]._id: ")
+  // console.log(typeof room.messages[0]._id)
+  if(data.lastestReadID == -1){
+    res.json({
+      confirmation: "success",
+      data: room.messages.slice(0, room.messages.length)
+    });
+    return; //fetch everything
+  }
+  const lastestReadID = mongoose.Types.ObjectId(data.lastestReadID)
+  const roomMessageLenght = room.messages.length;
+  let fetchMessageLenght = (roomMessageLenght >= 10) ? 10: roomMessageLenght; //if room has less than 10 message then get the less number
+
+  while(room.messages[roomMessageLenght-fetchMessageLenght]._id > lastestReadID){
+    fetchMessageLenght += 1;
+    // console.log(fetchMessageLenght + ": " + room.messages[roomMessageLenght-fetchMessageLenght]._id + " == " + lastestReadID + " res => " + (room.messages[roomMessageLenght-fetchMessageLenght]._id == lastestReadID))
+  }
+  while(room.messages[roomMessageLenght-fetchMessageLenght]._id < lastestReadID){
+    fetchMessageLenght -= 1;
+  }
+  fetchMessageLenght -= 1;
+
+  if(fetchMessageLenght == 0){
+    //already read latest message
+    fetchMessageLenght = (roomMessageLenght >= 10) ? 10: roomMessageLenght; // fetch 10 latestes or less
+    res.json({
+      confirmation: "success",
+      data: room.messages.slice(roomMessageLenght-fetchMessageLenght, roomMessageLenght)
+    });
+  }
+  else {
+    res.json({
+      confirmation: "success",
+      data: room.messages.slice(roomMessageLenght-fetchMessageLenght, roomMessageLenght)
+    });
+  }
 });
 
 //Api for leaving a room
@@ -281,7 +332,6 @@ app.post("/api/database/user", (req, res) => {
  * @throws {*} errors
  */
 async function sendMessageDB(roomID, senderID, messageText) {
-  //TODO
   const update = {
     $push: {
       messages: {
@@ -336,6 +386,16 @@ app.get("/api/user/:username", async (req, res) => {
 //       });
 //     });
 // });
+
+let testmsgi = 0;
+app.get("/testsendmessagedb", (req, res) => {
+  console.log('sending message ' + testmsgi)
+  sendMessageDB('5c94a0f2b10b6f00176ab5c1', '5c9495ed87afa201f437a4bc', "message test " + testmsgi);
+  testmsgi += 1;
+  console.log('sent!!!! message ' + testmsgi)
+  res.json({confirmation: "success"})
+});
+
 
 app.get("/testdb", (req, res) => {
   Room.find()
