@@ -474,7 +474,7 @@ app.get("/testdb", (req, res) => {
 });
 
 let io = socket(server);
-io.adapter(redis({ host: 'localhost', port: 6379 }));
+// io.adapter(redis({ host: 'localhost', port: 6379 }));
 
 io.on("connection", function(socket) {
   console.log("a user connected");
