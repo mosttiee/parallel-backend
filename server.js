@@ -363,7 +363,7 @@ async function sendMessageDB(roomID, senderID, messageText) {
       }
     }
   };
-  return await Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update, { new: true}).exec();
+  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update, { new: true}).exec();
 }
 
 /**
@@ -503,11 +503,11 @@ io.on("connection", function(socket) {
     });
   });
 
-  socket.on("message", data => {
+  socket.on("message", async (data) => {
     const { roomId, text, userId } = data;
     console.log(data);
     const room = await sendMessageDB(roomId, userId, text)
-    data['room'] = room
+    data['lastestRead'] = room.messages[room.messages.length-1]._id
     io.to(roomId).emit("new-msg", data);
   });
 });
