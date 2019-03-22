@@ -16,3 +16,4 @@
 2019/03/20 17:13:27 [error] 12772#21772: *6 upstream timed out (10060: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond) while connecting to upstream, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "localhost:8080"
 2019/03/20 17:15:18 [error] 12772#21772: *6 upstream timed out (10060: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond) while connecting to upstream, client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", upstream: "http://127.0.0.1:3000/", host: "localhost:8080"
 2019/03/20 17:17:58 [notice] 18980#18596: signal process started
+2019/03/22 20:29:48 [notice] 6108#9928: signal process started
