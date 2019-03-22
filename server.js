@@ -163,7 +163,7 @@ async function joinRoom(userID, roomID) {
     };
     return resultObj;
   }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
+  await Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), {
     $push: { members: user._id }
   })
     .exec()
@@ -196,6 +196,7 @@ async function joinRoom(userID, roomID) {
 app.post("/api/room/join", async (req, res) => {
   const data = req.body;
   joinRoom(data.userID, data.roomID).then(resultObj => {
+    console.log(resultObj);
     res.json(resultObj);
   });
 });
@@ -361,7 +362,6 @@ io.on("connection", function(socket) {
     console.log("user disconnected");
   });
 
-
   socket.on("joinRoom", roomId => {
     socket.join(roomId, () => {
       let rooms = Object.keys(socket.rooms);
@@ -370,21 +370,21 @@ io.on("connection", function(socket) {
     });
   });
 
-  socket.on("leaveRoom", (roomId) => {
+  socket.on("leaveRoom", roomId => {
     socket.leave(roomId, () => {
       console.log("leaveRoom");
     });
-  })
+  });
 
-  socket.on("leaveRoomPermanantly", (roomId) => {
+  socket.on("leaveRoomPermanantly", roomId => {
     socket.leave(roomId, () => {
       console.log("leaveRoomPermanantly");
     });
-  })
+  });
 
-  socket.on("message", (data) => {
-    const { roomId, text, userId } = data
-    console.log(data)
+  socket.on("message", data => {
+    const { roomId, text, userId } = data;
+    console.log(data);
     //sendMessageDB(roomId, userId, text)
     io.to(roomId).emit("new-msg", data);
   });
