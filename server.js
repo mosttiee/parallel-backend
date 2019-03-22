@@ -30,7 +30,7 @@ let server = app.listen(port, () =>
 //processing arguments
 const args = process.argv;
 console.log("arguments are: ");
-process.argv.forEach(function (val, index, array) {
+process.argv.forEach(function(val, index, array) {
   console.log(index + ": " + val);
   if (index >= 2) {
     if (val == "seed_database") {
@@ -41,7 +41,7 @@ process.argv.forEach(function (val, index, array) {
 });
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => { },
+  () => {},
   err => {
     console.log("connection to database error");
   }
@@ -49,7 +49,7 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
 mongoose.set("useCreateIndex", true);
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true }).then(
-  () => { },
+  () => {},
   err => {
     console.log("connection to database error");
   }
@@ -101,7 +101,7 @@ app.get("/api/room/getroomlist", (req, res) => {
   }
   User.findById(mongoose.Types.ObjectId(query.userID))
     .populate("joinedRoom.room", "roomName")
-    .populate("notJoinedRoom.room", "roomName")
+    .populate("notJoinedRoom", "roomName")
     .exec()
     .then(user => {
       res.json({
@@ -200,6 +200,13 @@ app.post("/api/room/join", async (req, res) => {
   });
 });
 
+//API fetch message require userID,roomID,lastestRead
+app.post("api/message/fetch", async (req, res) => {
+  const data = req.body;
+  const id = data.userID;
+  const roomID = data.roomID;
+});
+
 //Api for leaving a room
 //usage /api/room/leave , {userID: "userid", roomID:"roomID" }
 app.post("/api/room/leave", async (req, res) => {
@@ -222,7 +229,7 @@ app.post("/api/room/leave", async (req, res) => {
       //   lastestRead: ""
       // });
       //remove joinedRoom from this object
-      for (let i = user.joinedRoom.length; i--;) {
+      for (let i = user.joinedRoom.length; i--; ) {
         if (user.joinedRoom[i].room.toString() == room._id.toString()) {
           //console.log("found joinedroom to remove at index " + i);
           user.joinedRoom.splice(i, 1);
@@ -282,8 +289,8 @@ async function sendMessageDB(roomID, senderID, messageText) {
         sender: senderID
       }
     }
-  }
-  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec()
+  };
+  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update).exec();
 }
 
 app.get("/api/user/:username", async (req, res) => {
@@ -348,9 +355,9 @@ app.get("/testdb", (req, res) => {
 
 let io = socket(server);
 
-io.on("connection", function (socket) {
+io.on("connection", function(socket) {
   console.log("a user connected");
-  socket.on("disconnect", function () {
+  socket.on("disconnect", function() {
     console.log("user disconnected");
   });
 
@@ -366,6 +373,12 @@ io.on("connection", function (socket) {
   socket.on("leaveRoom", (roomId) => {
     socket.leave(roomId, () => {
       console.log("leaveRoom");
+    });
+  })
+
+  socket.on("leaveRoomPermanantly", (roomId) => {
+    socket.leave(roomId, () => {
+      console.log("leaveRoomPermanantly");
     });
   })
 
