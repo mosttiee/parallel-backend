@@ -507,7 +507,7 @@ io.on("connection", function(socket) {
   socket.on("message", async (data) => {
     const { roomId, text, userId } = data;
     console.log(data);
-    const room = await sendMessageDB(roomId, userId, text)
+    const room = await sendMessageDB(roomId, userId, text)ss
     data['lastestRead'] = room.messages[room.messages.length-1]._id
     io.to(roomId).emit("new-msg", data);
   });
