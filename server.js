@@ -3,7 +3,7 @@ const express = require("express");
 const socket = require("socket.io");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const redis = require('socket.io-redis');
+const redis = require("socket.io-redis");
 
 const Room = require("./models/Room");
 const User = require("./models/User");
@@ -53,6 +53,295 @@ app.get("/", (req, res) => {
   res.send("hello root world on port:" + port);
 });
 
+app.get("/allrooms", async (req, res) => {
+  let room = await Room.find({}).select({ roomName: 1 });
+  res.json({
+    status_code: 200,
+    body: room
+  });
+});
+
+app.post("/allrooms", async (req, res) => {
+  const roomName = req.body.id;
+  let room = await Room.findOne({ roomName: roomName });
+  if (room) {
+    res.json({
+      status_code: 404,
+      body: roomName + " already exists"
+    });
+  }
+  Room.create({ roomName: roomName, messages: [], members: [] })
+    .then(async room => {
+      console.log(room);
+      User.updateMany({}, { $push: { notJoinedRoom: room._id } }).exec();
+      res.json({
+        status_code: 201,
+        body: "id " + roomName
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.json({
+        status: "fail",
+        message: err.message
+      });
+    });
+});
+
+app.put("/allrooms", async (req, res) => {
+  const roomName = req.body.id;
+  let room = await Room.findOne({ roomName: roomName });
+  if (room) {
+    res.json({
+      status_code: 200,
+      body: "id: " + roomName
+    });
+  }
+  Room.create({ roomName: roomName, messages: [], members: [] })
+    .then(async room => {
+      User.updateMany({}, { $push: { notJoinedRoom: room._id } }).exec();
+      res.json({
+        status_code: 201,
+        body: "id " + roomName
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.json({
+        status: "fail",
+        message: err.message
+      });
+    });
+});
+
+app.delete("/allrooms", async (req, res) => {
+  const roomID = req.body.id;
+  let room = await Room.findOne({ roomName: roomName });
+  if (!room) {
+    res.json({
+      status_code: 404,
+      body: "Room id is not found"
+    });
+  }
+
+  await Room.findByIdAndDelete(mongoose.Types.ObjectId(room._id))
+    .lean()
+    .populate("members")
+    .then(room => {
+      User.updateMany(
+        {},
+        {
+          $pull: { joinedRoom: { room: room._id } }
+        },
+        {
+          $pull: { notJoinedRoom: room._id }
+        }
+      ).exec();
+      res.json({
+        status_code: 200,
+        body: roomName + " is deleted"
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.json({
+        status: "fail",
+        message: err.message
+      });
+    });
+});
+
+app.get("/room/:ROOM_ID", async (req, res) => {
+  const roomID = req.params.ROOM_ID;
+  await Room.findOne({ _id: roomID })
+  .then(async room => {
+    console.log(room)
+    if (room) {
+      let members = room.members
+      members = await Promise.all(members.map(async memberID => {
+        const member = await User.findOne({_id: memberID})
+        console.log(member.name)
+        return member.name
+      }))
+      console.log(members)
+      res.json({
+        status_code: 200,
+        body: ssssdsawedmembers
+      });
+    }else{
+      res.json({
+        status_code: 404,
+        body: "Room does not exist"
+      });
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.json({
+      status_code: 404,
+      body: "Room does not exist"
+    });
+  });
+});
+
+app.post("/room/:ROOM_ID", async (req, res) => {
+  const roomID = req.params.ROOM_ID;
+  const userName = req.body.user
+  await Room.findOne({ _id: roomID })
+  .then(async room => {
+    if (room) {
+      let members = room.members
+      const user = await User.findOne({name: userName})
+      if(user){
+        if(room.members.indexOf(user._id)+1){
+          res.json({
+            status_code: 200,
+            body: {}
+          });
+        }else{
+          res.json({
+            status_code: 201,
+            body: {}
+          });
+        }
+      }else{
+        res.json({
+          status_code: 201,
+          body: {}
+        });
+      }
+    }else{
+      res.json({
+        status_code: 404,
+        body: "Room does not exist"
+      });
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.json({
+      status_code: 404,
+      body: "Room does not exist"
+    });
+  });
+});
+
+app.put("/room/:ROOM_ID", async (req, res) => {
+  const roomID = req.params.ROOM_ID;
+  const userName = req.body.user
+  await Room.findOne({ _id: roomID })
+  .then(async room => {
+    if (room) {
+      let members = room.members
+      const user = await User.findOne({name: userName})
+      if(user){
+        if(room.members.indexOf(user._id)+1){
+          res.json({
+            status_code: 200,
+            body: {}
+          });
+        }else{
+          res.json({
+            status_code: 201,
+            body: {}
+          });
+        }
+      }else{
+        res.json({
+          status_code: 201,
+          body: {}
+        });
+      }
+    }else{
+      res.json({
+        status_code: 404,
+        body: "Room does not exist"
+      });
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.json({
+      status_code: 404,
+      body: "Room does not exist"
+    });
+  });
+});
+
+function findWithAttr(array, attr, value) {
+    for(var i = 0; i < array.length; i += 1) {
+        if(array[i][attr] === value) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+app.delete("/room/:ROOM_ID", async (req, res) => {
+  const roomID = req.params.ROOM_ID;
+  const userName = req.body.user
+  await Room.findOne({ _id: roomID })
+  .then(async room => {
+    if (room) {
+      const user = await User.findOne({name: userName})
+      if(user){
+        const userIndex = room.members.indexOf(user._id)
+        const roomIndex = findWithAttr(user.joinedRoom, 'room', roomID)
+        if(userIndex+1){
+
+          // Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID),
+          // { $set: { members: room.members.splice(userIndex, 1) } })
+          // User.findByIdAndUpdate(mongoose.Types.ObjectId(user._id),
+          // { $set: { joinedRoom: user.joinedRoom.splice(roomIndex, 1) } })
+
+          console.log('**************************************')
+          console.log(room.members)
+          console.log(userIndex)
+          console.log(room.members.splice(userIndex, 1))
+          console.log(user.joinedRoom)
+          console.log(roomIndex)
+          console.log(user.joinedRoom.splice(roomIndex, 1))
+
+          res.json({
+            status_code: 200,
+            body: {}
+          });
+        }else{
+          res.json({
+            status_code: 404,
+            body: "User id is not found"
+          });
+        }
+      }else{
+        res.json({
+          status_code: 404,
+          body: "User id is not found"
+        });
+      }
+    }else{
+      res.json({
+        status_code: 404,
+        body: "Room does not exist"
+      });
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.json({
+      status_code: 404,
+      body: "Room does not exist"
+    });
+  });
+});
+
+app.get("/users", async (req, res) => {
+  let user = await User.find({}).select({ name: 1 });
+  res.json({
+    status_code: 200,
+    body: user
+  });
+});
+
 //db query section /api/database/room?roomName=A01
 app.get("/api/database/room", (req, res) => {
   const query = req.query;
@@ -93,6 +382,7 @@ app.get("/api/room/getroomlist", (req, res) => {
     return;
   }
   User.findById(mongoose.Types.ObjectId(query.userID))
+    .lean()
     .populate("joinedRoom.room", "roomName")
     .populate("notJoinedRoom", "roomName")
     .exec()
@@ -117,6 +407,7 @@ app.get("/api/room/getroomlist", (req, res) => {
  */
 app.post("/api/room/createroom", async (req, res) => {
   const data = req.body;
+  // console.log(data)
   let user = await User.findById(mongoose.Types.ObjectId(data.userID));
   if (!user) {
     res.json({
@@ -125,12 +416,11 @@ app.post("/api/room/createroom", async (req, res) => {
     });
   }
   Room.create({ roomName: data.roomName, messages: [], members: [user._id] })
-    .then(room => {
-      User.updateMany(
-        {},
-        { $push: { notJoinedRoom: { room: room._id } } }
-      ).exec();
+    .then(async room => {
+      await User.updateMany({}, { $push: { notJoinedRoom: room._id } }).exec();
       user.joinedRoom.push({ room: room._id, lastestRead: "-1" });
+      // console.log("pulling " + room._id)
+      user.notJoinedRoom.pull(room._id);
       // console.log(user)
       user.save();
       res.json({
@@ -175,7 +465,6 @@ async function joinRoom(userID, roomID) {
         room: room._id,
         lastestRead: "-1"
       });
-      // var index = array.indexOf(5);
       user.notJoinedRoom.pull(room._id);
       user.save();
       resultObj = {
@@ -271,7 +560,12 @@ app.post("/api/room/fetchmessage", async (req, res) => {
       )
     });
   } else {
-    fetchMessageLenght = (fetchMessageLenght < 10) ? ((roomMessageLenght >= 10) ? 10 : roomMessageLenght) : fetchMessageLenght
+    fetchMessageLenght =
+      fetchMessageLenght < 10
+        ? roomMessageLenght >= 10
+          ? 10
+          : roomMessageLenght
+        : fetchMessageLenght;
     res.json({
       confirmation: "success",
       data: room.messages.slice(
@@ -293,7 +587,7 @@ app.post("/api/room/leave", async (req, res) => {
       data: "A user with ID " + data.userID + " doesn't exist"
     });
   }
-  Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
+  await Room.findByIdAndUpdate(mongoose.Types.ObjectId(data.roomID), {
     $pull: { members: user._id }
   })
     .exec()
@@ -364,7 +658,9 @@ async function sendMessageDB(roomID, senderID, messageText) {
       }
     }
   };
-  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update, { new: true}).exec();
+  return Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID), update, {
+    new: true
+  }).exec();
 }
 
 /**
@@ -476,7 +772,7 @@ app.get("/testdb", (req, res) => {
 });
 
 let io = socket(server);
-// io.adapter(redis({ host: 'localhost', port: 6379 }));
+io.adapter(redis({ host: "localhost", port: 6379 }));
 
 io.on("connection", function(socket) {
   console.log("a user connected");
@@ -504,11 +800,11 @@ io.on("connection", function(socket) {
     });
   });
 
-  socket.on("message", async (data) => {
+  socket.on("message", async data => {
     const { roomId, text, userId } = data;
     console.log(data);
-    const room = await sendMessageDB(roomId, userId, text)ss
-    data['lastestRead'] = room.messages[room.messages.length-1]._id
+    const room = await sendMessageDB(roomId, userId, text);
+    data["lastestRead"] = room.messages[room.messages.length - 1]._id;
     io.to(roomId).emit("new-msg", data);
   });
 });
