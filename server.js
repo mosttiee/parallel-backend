@@ -270,7 +270,7 @@ app.put("/room/:ROOM_ID", async (req, res) => {
 
 function findWithAttr(array, attr, value) {
     for(var i = 0; i < array.length; i += 1) {
-        if(array[i][attr] === value) {
+        if(array[i][attr].toString() === value) {
             return i;
         }
     }
@@ -287,24 +287,29 @@ app.delete("/room/:ROOM_ID", async (req, res) => {
       if(user){
         const userIndex = room.members.indexOf(user._id)
         const roomIndex = findWithAttr(user.joinedRoom, 'room', roomID)
-        if(userIndex+1){
+        if((userIndex+1)&(roomIndex+1)){
 
-          // Room.findByIdAndUpdate(mongoose.Types.ObjectId(roomID),
-          // { $set: { members: room.members.splice(userIndex, 1) } })
-          // User.findByIdAndUpdate(mongoose.Types.ObjectId(user._id),
-          // { $set: { joinedRoom: user.joinedRoom.splice(roomIndex, 1) } })
+          Room.updateOne({_id: roomID},
+          { members: room.members.splice(userIndex, 1) }).catch(err => {
+            console.log(err)
+          })
+          User.updateOne({_id: user._id},
+          { joinedRoom: user.joinedRoom.splice(roomIndex, 1)})
+          User.updateOne({_id: user._id}, {$push: { notJoinedRoom: roomID}})
 
           console.log('**************************************')
           console.log(room.members)
           console.log(userIndex)
-          console.log(room.members.splice(userIndex, 1))
+          room.members.splice(userIndex, 1)
+          console.log(room.members)
           console.log(user.joinedRoom)
           console.log(roomIndex)
-          console.log(user.joinedRoom.splice(roomIndex, 1))
+          user.joinedRoom.splice(roomIndex, 1)
+          console.log(user.joinedRoom)
 
           res.json({
             status_code: 200,
-            body: {}
+            body: "USERS_ID leaves the room"
           });
         }else{
           res.json({
